@@ -283,7 +283,7 @@ function StampHeader() {
             width={560}
             height={246}
             priority
-            className="h-11 w-auto min-[560px]:h-14"
+            className="-ml-[33px] h-20 w-auto shrink-0 min-[560px]:-ml-[37px] min-[560px]:h-24"
           />
           <Badge
             variant="outline"
