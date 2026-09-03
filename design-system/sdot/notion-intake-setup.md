@@ -111,12 +111,16 @@ In Notion, create a full-page database: **Internship Applications**
 | Email | Text | |
 | Phone | Text | |
 | City | Text | Optional |
-| Education | Text | |
+| Degree | Text | e.g. BA Political Science |
+| Institution | Text | e.g. Osmania University |
+| Year | Text | 4-digit graduation year |
 | Portfolio | Text | URL |
-| Interests | Text | Comma-separated chips |
+| Interests | Text | Comma-separated chips (may include Other) |
+| Interests other | Text | Required when Interests includes Other; otherwise empty |
 | Why SDOT | Text | Short answer (also in page body) |
 | Analysis | Text | ~100-word assessment (also in page body) |
-| Tools | Text | Comma-separated |
+| Tools | Text | Comma-separated (may include Other) |
+| Tools other | Text | Required when Tools includes Other; otherwise empty |
 | Hours/week | Text | |
 | Start date | Text | ISO date |
 | Video link | Text | Drive / YouTube / Loom URL |
@@ -124,6 +128,8 @@ In Notion, create a full-page database: **Internship Applications**
 | Submitted | Text | ISO timestamp |
 
 > Property names must match **exactly** (case-sensitive).
+>
+> **Migration note:** If the database still has a single **Education** column, add Text properties **Degree**, **Institution**, and **Year**. Also add **Interests other** and **Tools other** for the Other chip specify fields. New form submissions write to these properties; you can keep or archive old unused columns.
 
 ### Review properties (filled by your team)
 
@@ -190,12 +196,16 @@ curl -X POST http://localhost:3000/api/internship \
     "email":"test@example.com",
     "phone":"9999999999",
     "city":"Hyderabad",
-    "education":"Test University, BA, 2027",
+    "degree":"BA Political Science",
+    "institution":"Test University",
+    "year":"2027",
     "portfolio":"",
-    "interests":["Research","Writing"],
+    "interests":["Research","Writing","Other"],
+    "interestsOther":"Podcasting",
     "why":"Interested in independent political intelligence.",
     "analysis":"A recent state election showed shifting urban-rural patterns. The incumbent party retained seats but lost vote share in tier-2 cities, suggesting economic messaging mattered more than identity appeals in those districts.",
-    "tools":["Canva"],
+    "tools":["Canva","Other"],
+    "toolsOther":"Blender",
     "hoursPerWeek":"12",
     "startDate":"2026-09-01",
     "videoLink":"https://youtu.be/example",
@@ -257,7 +267,7 @@ For each new application in **Inbox**:
 ### Manual (works today)
 
 1. Open application page in Notion
-2. Copy: Name, Education, Interests, Why SDOT, Analysis, Video note
+2. Copy: Name, Degree, Institution, Year, Interests, Interests other, Tools, Tools other, Why SDOT, Analysis, Video note
 3. Paste into Claude with this prompt:
 
 ```

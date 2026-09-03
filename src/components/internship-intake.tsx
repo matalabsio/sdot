@@ -56,12 +56,16 @@ type FormState = {
   email: string;
   phone: string;
   city: string;
-  education: string;
+  degree: string;
+  institution: string;
+  year: string;
   portfolio: string;
   interests: string[];
+  interestsOther: string;
   why: string;
   analysis: string;
   tools: string[];
+  toolsOther: string;
   hoursPerWeek: string;
   startDate: string;
   videoLink: string;
@@ -73,12 +77,16 @@ const emptyForm: FormState = {
   email: "",
   phone: "",
   city: "",
-  education: "",
+  degree: "",
+  institution: "",
+  year: "",
   portfolio: "",
   interests: [],
+  interestsOther: "",
   why: "",
   analysis: "",
   tools: [],
+  toolsOther: "",
   hoursPerWeek: "",
   startDate: "",
   videoLink: "",
@@ -92,13 +100,17 @@ const testPrefillForm: FormState = {
   email: "test.applicant@example.com",
   phone: "+91 98765 43210",
   city: "Hyderabad",
-  education: "Osmania University, BA Political Science, 2026",
+  degree: "BA Political Science",
+  institution: "Osmania University",
+  year: "2026",
   portfolio: "https://example.com/portfolio",
   interests: ["Political Analysis", "Writing"],
+  interestsOther: "",
   why: "SDOT sits at the intersection of politics, data, and clear public communication. I want to learn how independent political intelligence is produced, not just consumed from headlines.",
   analysis:
     "The recent assembly results in a large Hindi-belt state showed that media narratives about a wave often miss quieter shifts in semi-urban seats. Turnout among first-time voters rose in districts with heavy migrant returnees, while incumbents held where local delivery on irrigation and power mattered more than national slogans. The lesson for political intelligence is to track booth-level composition and local grievance alongside headline polling. Coverage that treats every election as a personality contest misses the structural story SDOT is built to explain.",
   tools: ["Canva", "Figma"],
+  toolsOther: "",
   hoursPerWeek: "15",
   startDate: "2026-09-01",
   videoLink: "https://youtu.be/dQw4w9WgXcQ",
@@ -293,13 +305,19 @@ function StampHeader() {
           </Badge>
         </div>
         <h1 className="font-heading text-[clamp(1.65rem,7vw,2.375rem)] font-extrabold leading-[1.08] tracking-tight">
-          Internship <span className="text-accent">Intake</span> Dossier
+          Internship <span className="text-accent">September</span> 2026
         </h1>
-        <p className="mt-2.5 max-w-[52ch] text-[13.5px] leading-[1.55] text-primary-foreground/80 min-[560px]:text-[14.5px]">
-          SDOT is an independent political intelligence platform. This intake
-          collects your profile, a short assessment, and a video briefing —
-          three sections, about 12 minutes.
-        </p>
+        <div className="mt-2.5 max-w-[58ch] space-y-2.5 text-[13.5px] leading-[1.55] text-primary-foreground/80 min-[560px]:text-[14.5px]">
+          <p>
+            SDOT is an independent political intelligence platform that aims to
+            elevate political discourse through informed opinions.
+          </p>
+          <p>
+            This internship is for a fresh graduate with strong values and
+            aspirations for a resurgent India.
+          </p>
+          <p>Three sections—profile, assessment, and video briefing.</p>
+        </div>
       </div>
     </header>
   );
@@ -365,16 +383,22 @@ export function InternshipIntake() {
 
   const invalid = useMemo(() => {
     const hours = Number(form.hoursPerWeek);
+    const interestsOtherSelected = form.interests.includes("Other");
+    const toolsOtherSelected = form.tools.includes("Other");
     return {
       name: !form.name.trim(),
       email: !isEmail(form.email.trim()),
       phone: !form.phone.trim(),
-      education: !form.education.trim(),
+      degree: !form.degree.trim(),
+      institution: !form.institution.trim(),
+      year: !/^\d{4}$/.test(form.year.trim()),
       portfolio: Boolean(form.portfolio.trim()) && !isHttpUrl(form.portfolio.trim()),
       interests: form.interests.length === 0,
+      interestsOther: interestsOtherSelected && !form.interestsOther.trim(),
       why: !form.why.trim(),
       analysis:
         !form.analysis.trim() || wordCount(form.analysis) < ANALYSIS_MIN_WORDS,
+      toolsOther: toolsOtherSelected && !form.toolsOther.trim(),
       hoursPerWeek: !form.hoursPerWeek || hours < 1 || hours > 60,
       startDate: !form.startDate,
       videoLink: !isHttpUrl(form.videoLink.trim()),
@@ -588,27 +612,84 @@ export function InternshipIntake() {
                       </Field>
                     </div>
 
+                    <div className={fieldRowClass}>
+                      <Field
+                        className="min-w-0"
+                        data-invalid={invalidMark(showErrors && invalid.degree)}
+                      >
+                        <FieldLabel htmlFor="degree" className={fieldLabelClass}>
+                          Degree <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          id="degree"
+                          name="degree"
+                          required
+                          aria-required
+                          placeholder="e.g. BA Political Science"
+                          aria-invalid={showErrors && invalid.degree}
+                          value={form.degree}
+                          onChange={(event) =>
+                            update("degree", event.target.value)
+                          }
+                        />
+                        {showErrors && invalid.degree ? (
+                          <FieldError>Enter your degree.</FieldError>
+                        ) : null}
+                      </Field>
+                      <Field
+                        className="min-w-0"
+                        data-invalid={invalidMark(
+                          showErrors && invalid.institution,
+                        )}
+                      >
+                        <FieldLabel
+                          htmlFor="institution"
+                          className={fieldLabelClass}
+                        >
+                          Institution{" "}
+                          <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          id="institution"
+                          name="institution"
+                          required
+                          aria-required
+                          placeholder="e.g. Osmania University"
+                          aria-invalid={showErrors && invalid.institution}
+                          value={form.institution}
+                          onChange={(event) =>
+                            update("institution", event.target.value)
+                          }
+                        />
+                        {showErrors && invalid.institution ? (
+                          <FieldError>Enter your institution.</FieldError>
+                        ) : null}
+                      </Field>
+                    </div>
+
                     <Field
-                      data-invalid={invalidMark(showErrors && invalid.education)}
+                      data-invalid={invalidMark(showErrors && invalid.year)}
                     >
-                      <FieldLabel htmlFor="education" className={fieldLabelClass}>
-                        Current education / program{" "}
-                        <span className="text-destructive">*</span>
+                      <FieldLabel htmlFor="year" className={fieldLabelClass}>
+                        Year <span className="text-destructive">*</span>
                       </FieldLabel>
                       <Input
-                        id="education"
-                        name="education"
+                        id="year"
+                        name="year"
                         required
                         aria-required
-                        placeholder="Institution, degree, year"
-                        aria-invalid={showErrors && invalid.education}
-                        value={form.education}
+                        inputMode="numeric"
+                        placeholder="2026"
+                        aria-invalid={showErrors && invalid.year}
+                        value={form.year}
                         onChange={(event) =>
-                          update("education", event.target.value)
+                          update("year", event.target.value)
                         }
                       />
-                      {showErrors && invalid.education ? (
-                        <FieldError>Enter your current program.</FieldError>
+                      {showErrors && invalid.year ? (
+                        <FieldError>
+                          Enter a 4-digit graduation year.
+                        </FieldError>
                       ) : null}
                     </Field>
 
@@ -652,7 +733,10 @@ export function InternshipIntake() {
 
                   <FieldGroup>
                     <Field
-                      data-invalid={invalidMark(showErrors && invalid.interests)}
+                      data-invalid={invalidMark(
+                        showErrors &&
+                          (invalid.interests || invalid.interestsOther),
+                      )}
                     >
                       <FieldSet>
                         <FieldLegend variant="label" className={fieldLabelClass}>
@@ -664,10 +748,21 @@ export function InternshipIntake() {
                           variant="chip"
                           spacing={2}
                           value={form.interests}
-                          onValueChange={(value) => update("interests", value)}
+                          onValueChange={(value) => {
+                            setForm((current) => ({
+                              ...current,
+                              interests: value,
+                              interestsOther: value.includes("Other")
+                                ? current.interestsOther
+                                : "",
+                            }));
+                          }}
                           className="flex w-full max-w-full flex-wrap justify-start"
                           aria-required
-                          aria-invalid={showErrors && invalid.interests}
+                          aria-invalid={
+                            showErrors &&
+                            (invalid.interests || invalid.interestsOther)
+                          }
                         >
                           {INTERESTS.map((interest) => (
                             <ToggleGroupItem key={interest} value={interest}>
@@ -675,6 +770,36 @@ export function InternshipIntake() {
                             </ToggleGroupItem>
                           ))}
                         </ToggleGroup>
+                        {form.interests.includes("Other") ? (
+                          <Field className="mt-3">
+                            <FieldLabel
+                              htmlFor="interestsOther"
+                              className={fieldLabelClass}
+                            >
+                              Please specify{" "}
+                              <span className="text-destructive">*</span>
+                            </FieldLabel>
+                            <Input
+                              id="interestsOther"
+                              name="interestsOther"
+                              required
+                              aria-required
+                              placeholder="Other — specify"
+                              aria-invalid={
+                                showErrors && invalid.interestsOther
+                              }
+                              value={form.interestsOther}
+                              onChange={(event) =>
+                                update("interestsOther", event.target.value)
+                              }
+                            />
+                            {showErrors && invalid.interestsOther ? (
+                              <FieldError>
+                                Tell us which other area of interest.
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        ) : null}
                         {showErrors && invalid.interests ? (
                           <FieldError>
                             Select at least one area of interest.
@@ -741,25 +866,68 @@ export function InternshipIntake() {
                       ) : null}
                     </Field>
 
-                    <FieldSet>
-                      <FieldLegend variant="label" className={fieldLabelClass}>
-                        Tools you have worked with
-                      </FieldLegend>
-                      <ToggleGroup
-                        type="multiple"
-                        variant="chip"
-                        spacing={2}
-                        value={form.tools}
-                        onValueChange={(value) => update("tools", value)}
-                        className="flex w-full max-w-full flex-wrap justify-start"
-                      >
-                        {TOOLS.map((tool) => (
-                          <ToggleGroupItem key={tool} value={tool}>
-                            {tool}
-                          </ToggleGroupItem>
-                        ))}
-                      </ToggleGroup>
-                    </FieldSet>
+                    <Field
+                      data-invalid={invalidMark(
+                        showErrors && invalid.toolsOther,
+                      )}
+                    >
+                      <FieldSet>
+                        <FieldLegend variant="label" className={fieldLabelClass}>
+                          Tools you have worked with
+                        </FieldLegend>
+                        <ToggleGroup
+                          type="multiple"
+                          variant="chip"
+                          spacing={2}
+                          value={form.tools}
+                          onValueChange={(value) => {
+                            setForm((current) => ({
+                              ...current,
+                              tools: value,
+                              toolsOther: value.includes("Other")
+                                ? current.toolsOther
+                                : "",
+                            }));
+                          }}
+                          className="flex w-full max-w-full flex-wrap justify-start"
+                          aria-invalid={showErrors && invalid.toolsOther}
+                        >
+                          {TOOLS.map((tool) => (
+                            <ToggleGroupItem key={tool} value={tool}>
+                              {tool}
+                            </ToggleGroupItem>
+                          ))}
+                        </ToggleGroup>
+                        {form.tools.includes("Other") ? (
+                          <Field className="mt-3">
+                            <FieldLabel
+                              htmlFor="toolsOther"
+                              className={fieldLabelClass}
+                            >
+                              Please specify{" "}
+                              <span className="text-destructive">*</span>
+                            </FieldLabel>
+                            <Input
+                              id="toolsOther"
+                              name="toolsOther"
+                              required
+                              aria-required
+                              placeholder="Other — specify"
+                              aria-invalid={showErrors && invalid.toolsOther}
+                              value={form.toolsOther}
+                              onChange={(event) =>
+                                update("toolsOther", event.target.value)
+                              }
+                            />
+                            {showErrors && invalid.toolsOther ? (
+                              <FieldError>
+                                Tell us which other tool.
+                              </FieldError>
+                            ) : null}
+                          </Field>
+                        ) : null}
+                      </FieldSet>
+                    </Field>
 
                     <div className={fieldRowClass}>
                       <Field

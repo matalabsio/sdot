@@ -105,14 +105,23 @@ export async function appendToNotion(application: InternshipApplication) {
         City: {
           rich_text: richText(application.city),
         },
-        Education: {
-          rich_text: richText(application.education),
+        Degree: {
+          rich_text: richText(application.degree),
+        },
+        Institution: {
+          rich_text: richText(application.institution),
+        },
+        Year: {
+          rich_text: richText(application.year),
         },
         Portfolio: {
           rich_text: richText(application.portfolio),
         },
         Interests: {
           rich_text: richText(joinList(application.interests)),
+        },
+        "Interests other": {
+          rich_text: richText(application.interestsOther),
         },
         "Why SDOT": {
           rich_text: richText(application.why),
@@ -122,6 +131,9 @@ export async function appendToNotion(application: InternshipApplication) {
         },
         Tools: {
           rich_text: richText(joinList(application.tools)),
+        },
+        "Tools other": {
+          rich_text: richText(application.toolsOther),
         },
         "Hours/week": {
           rich_text: richText(application.hoursPerWeek),

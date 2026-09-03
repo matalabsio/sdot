@@ -63,9 +63,18 @@ export function validateInternshipInput(
     return "City is too long.";
   }
 
-  if (!input.education.trim()) return "Education is required.";
-  if (exceedsLimit(input.education, FIELD_LIMITS.education)) {
-    return "Education is too long.";
+  if (!input.degree.trim()) return "Degree is required.";
+  if (exceedsLimit(input.degree, FIELD_LIMITS.degree)) {
+    return "Degree is too long.";
+  }
+
+  if (!input.institution.trim()) return "Institution is required.";
+  if (exceedsLimit(input.institution, FIELD_LIMITS.institution)) {
+    return "Institution is too long.";
+  }
+
+  if (!/^\d{4}$/.test(input.year.trim())) {
+    return "Graduation year must be a 4-digit year.";
   }
 
   if (input.portfolio.trim() && !isHttpUrl(input.portfolio.trim())) {
@@ -78,6 +87,14 @@ export function validateInternshipInput(
   if (!input.interests.length) return "Select at least one area of interest.";
   if (!isAllowedOption(input.interests, INTEREST_OPTIONS)) {
     return "Invalid area of interest selected.";
+  }
+  if (input.interests.includes("Other")) {
+    if (!input.interestsOther.trim()) {
+      return "Please specify your other area of interest.";
+    }
+    if (exceedsLimit(input.interestsOther, FIELD_LIMITS.interestsOther)) {
+      return "Other area of interest is too long.";
+    }
   }
 
   if (!input.why.trim()) return "Why SDOT is required.";
@@ -95,6 +112,14 @@ export function validateInternshipInput(
 
   if (input.tools.length && !isAllowedOption(input.tools, TOOL_OPTIONS)) {
     return "Invalid tool selected.";
+  }
+  if (input.tools.includes("Other")) {
+    if (!input.toolsOther.trim()) {
+      return "Please specify your other tool.";
+    }
+    if (exceedsLimit(input.toolsOther, FIELD_LIMITS.toolsOther)) {
+      return "Other tool is too long.";
+    }
   }
 
   const hours = Number(input.hoursPerWeek);
@@ -130,12 +155,18 @@ export function normalizeInternshipInput(
     email: input.email.trim(),
     phone: input.phone.trim(),
     city: input.city.trim(),
-    education: input.education.trim(),
+    degree: input.degree.trim(),
+    institution: input.institution.trim(),
+    year: input.year.trim(),
     portfolio: input.portfolio.trim(),
     interests: input.interests,
+    interestsOther: input.interests.includes("Other")
+      ? input.interestsOther.trim()
+      : "",
     why: input.why.trim(),
     analysis: input.analysis.trim(),
     tools: input.tools,
+    toolsOther: input.tools.includes("Other") ? input.toolsOther.trim() : "",
     hoursPerWeek: input.hoursPerWeek,
     startDate: input.startDate,
     videoLink: input.videoLink.trim(),

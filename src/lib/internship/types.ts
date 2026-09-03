@@ -4,12 +4,16 @@ export type InternshipApplication = {
   email: string;
   phone: string;
   city: string;
-  education: string;
+  degree: string;
+  institution: string;
+  year: string;
   portfolio: string;
   interests: string[];
+  interestsOther: string;
   why: string;
   analysis: string;
   tools: string[];
+  toolsOther: string;
   hoursPerWeek: string;
   startDate: string;
   videoLink: string;
