@@ -5,6 +5,7 @@ export const INTEREST_OPTIONS = [
   "Video / Multimedia",
   "Research",
   "Writing",
+  "Other",
 ] as const;
 
 export const TOOL_OPTIONS = [
@@ -13,6 +14,7 @@ export const TOOL_OPTIONS = [
   "Adobe Suite",
   "CapCut / Premiere",
   "None yet",
+  "Other",
 ] as const;
 
 export const FIELD_LIMITS = {
@@ -20,8 +22,12 @@ export const FIELD_LIMITS = {
   email: 254,
   phone: 40,
   city: 100,
-  education: 200,
+  degree: 120,
+  institution: 120,
+  year: 4,
   portfolio: 500,
+  interestsOther: 120,
+  toolsOther: 120,
   why: 2000,
   analysis: 1500,
   videoLink: 500,

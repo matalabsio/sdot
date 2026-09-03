@@ -16,9 +16,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SDOT — Internship Intake",
+  title: "SDOT — Internship September 2026",
   description:
-    "SDOT internship intake dossier: profile, assessment, and video briefing.",
+    "SDOT internship September 2026: profile, assessment, and video briefing for fresh graduates.",
 };
 
 export const viewport: Viewport = {
