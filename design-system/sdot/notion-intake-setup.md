@@ -320,6 +320,26 @@ On Vercel (or your host):
 
 Optional: `NOTION_DATA_SOURCE_ID` (auto-resolved from database)
 
+### Google Sheets fallback (recommended)
+
+If Notion write fails (missing properties, API outage, etc.), the API can still save the full application to a Google Sheet via Apps Script.
+
+| Variable | Production value |
+|----------|------------------|
+| `GOOGLE_SHEETS_WEBHOOK_URL` | Apps Script Web App `/exec` URL |
+| `GOOGLE_SHEETS_WEBHOOK_SECRET` | Same secret as Apps Script property `WEBHOOK_SECRET` |
+
+Setup:
+
+1. Create a Google Sheet with a tab named **Applications**
+2. Extensions → Apps Script → paste [`scripts/internship-apps-script.js`](../../../scripts/internship-apps-script.js)
+3. (Optional) Project Settings → Script properties → add `WEBHOOK_SECRET`
+4. Deploy → New deployment → **Web app** → Execute as **Me** → Who has access **Anyone**
+5. Copy the Web App URL into Vercel as `GOOGLE_SHEETS_WEBHOOK_URL`
+6. Redeploy
+
+Behavior: Notion is tried first. On Notion failure, Sheets is used and the applicant still sees success (`storedVia: "google-sheets-fallback"`). The Sheet row includes a **Notion error** column for debugging.
+
 ### Deploy steps
 
 1. Add env vars in Vercel → **Settings → Environment Variables** (Production scope)
@@ -334,7 +354,8 @@ Optional: `NOTION_DATA_SOURCE_ID` (auto-resolved from database)
 - Rate limiting: 5 submissions / hour / IP on `/api/internship`
 - Honeypot field on the form (bot trap)
 - Server-side validation (field limits, allowed interests/tools, min word count)
-- Notion failure fails the request — no silent partial writes
+- Notion failure fails the request **unless** Google Sheets fallback is configured
+- When Sheets fallback succeeds, the applicant still gets a success response
 - Generic error messages in production (no Notion API details leaked)
 - Security headers (`X-Frame-Options`, `Referrer-Policy`, etc.)
 - `/api/` disallowed in `robots.txt`

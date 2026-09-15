@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { publicApiError } from "@/lib/api-error";
+import {
+  appendToGoogleSheet,
+  isGoogleSheetsConfigured,
+} from "@/lib/internship/google-sheets";
 import { makeRefId } from "@/lib/internship/ref-id";
 import { appendToNotion, isNotionConfigured } from "@/lib/internship/notion";
 import type { InternshipApplicationInput } from "@/lib/internship/types";
@@ -9,9 +13,27 @@ import {
 } from "@/lib/internship/validate";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
+async function mirrorToSheets(
+  application: Parameters<typeof appendToGoogleSheet>[0],
+  notionError: string,
+) {
+  if (!isGoogleSheetsConfigured()) return false;
+  try {
+    await appendToGoogleSheet(application, { notionError });
+    return true;
+  } catch (error) {
+    console.error("[internship] Google Sheets write failed:", error);
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const rateLimit = checkRateLimit(`internship:${ip}`, 5, 60 * 60 * 1000);
+  const rateLimit = checkRateLimit(
+    `internship:${ip}`,
+    process.env.NODE_ENV === "development" ? 50 : 5,
+    60 * 60 * 1000,
+  );
 
   if (!rateLimit.ok) {
     return NextResponse.json(
@@ -23,9 +45,15 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isNotionConfigured()) {
+  const notionReady = isNotionConfigured();
+  const sheetsReady = isGoogleSheetsConfigured();
+
+  if (!notionReady && !sheetsReady) {
     return NextResponse.json(
-      { error: "Intake is not connected yet. Configure Notion." },
+      {
+        error:
+          "Intake is not connected yet. Configure Notion or Google Sheets.",
+      },
       { status: 503 },
     );
   }
@@ -46,20 +74,65 @@ export async function POST(request: Request) {
   const submittedAt = new Date().toISOString();
   const application = normalizeInternshipInput(body, refId, submittedAt);
 
-  try {
-    await appendToNotion(application);
+  let notionError: unknown = null;
 
-    return NextResponse.json({ refId, submittedAt });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: publicApiError(
-          error,
-          "Could not file the application. Please try again in a few minutes.",
-          "internship",
-        ),
-      },
-      { status: 502 },
-    );
+  if (notionReady) {
+    try {
+      await appendToNotion(application);
+      const mirrored = await mirrorToSheets(application, "");
+      return NextResponse.json({
+        refId,
+        submittedAt,
+        storedVia: mirrored ? ("notion+sheets" as const) : ("notion" as const),
+      });
+    } catch (error) {
+      notionError = error;
+      console.error("[internship] Notion write failed:", error);
+    }
   }
+
+  if (sheetsReady) {
+    try {
+      await appendToGoogleSheet(application, {
+        notionError:
+          notionError instanceof Error
+            ? notionError.message
+            : notionError
+              ? String(notionError)
+              : notionReady
+                ? "Notion write failed"
+                : "Notion not configured",
+      });
+
+      return NextResponse.json({
+        refId,
+        submittedAt,
+        storedVia: "google-sheets-fallback" as const,
+      });
+    } catch (sheetsError) {
+      console.error("[internship] Google Sheets fallback failed:", sheetsError);
+      return NextResponse.json(
+        {
+          error: publicApiError(
+            sheetsError,
+            "Could not file the application. Please try again in a few minutes.",
+            "internship",
+          ),
+        },
+        { status: 502 },
+      );
+    }
+  }
+
+  // Notion failed and Sheets webhook is not configured
+  return NextResponse.json(
+    {
+      error: publicApiError(
+        notionError,
+        "Could not file the application. Notion failed and Google Sheets fallback is not configured.",
+        "internship",
+      ),
+    },
+    { status: 502 },
+  );
 }

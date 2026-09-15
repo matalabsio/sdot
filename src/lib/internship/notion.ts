@@ -84,76 +84,85 @@ export async function appendToNotion(application: InternshipApplication) {
 
   const dataSourceId = await resolveDataSourceId(apiKey, databaseId);
 
+  const properties: Record<string, unknown> = {
+    Name: {
+      title: richText(application.name),
+    },
+    Ref: {
+      rich_text: richText(application.refId),
+    },
+    Email: {
+      rich_text: richText(application.email),
+    },
+    Phone: {
+      rich_text: richText(application.phone),
+    },
+    City: {
+      rich_text: richText(application.city),
+    },
+    Degree: {
+      rich_text: richText(application.degree),
+    },
+    Institution: {
+      rich_text: richText(application.institution),
+    },
+    Year: {
+      rich_text: richText(application.year),
+    },
+    Portfolio: {
+      rich_text: richText(application.portfolio),
+    },
+    Interests: {
+      rich_text: richText(joinList(application.interests)),
+    },
+    "Why SDOT": {
+      rich_text: richText(application.why),
+    },
+    Analysis: {
+      rich_text: richText(application.analysis),
+    },
+    Tools: {
+      rich_text: richText(joinList(application.tools)),
+    },
+    "Hours/week": {
+      rich_text: richText(application.hoursPerWeek),
+    },
+    "Start date": {
+      rich_text: richText(application.startDate),
+    },
+    "Video link": {
+      rich_text: richText(application.videoLink),
+    },
+    "Video note": {
+      rich_text: richText(application.videoNote),
+    },
+    Submitted: {
+      rich_text: richText(application.submittedAt),
+    },
+    "Review status": {
+      select: { name: "New" },
+    },
+  };
+
+  // Only send Other fields when filled — avoids Notion 400 if those
+  // properties are missing and the applicant did not use Other.
+  if (application.interestsOther.trim()) {
+    properties["Interests other"] = {
+      rich_text: richText(application.interestsOther),
+    };
+  }
+  if (application.toolsOther.trim()) {
+    properties["Tools other"] = {
+      rich_text: richText(application.toolsOther),
+    };
+  }
+
   const response = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: notionHeaders(apiKey),
     body: JSON.stringify({
       parent: { type: "data_source_id", data_source_id: dataSourceId },
-      properties: {
-        Name: {
-          title: richText(application.name),
-        },
-        Ref: {
-          rich_text: richText(application.refId),
-        },
-        Email: {
-          rich_text: richText(application.email),
-        },
-        Phone: {
-          rich_text: richText(application.phone),
-        },
-        City: {
-          rich_text: richText(application.city),
-        },
-        Degree: {
-          rich_text: richText(application.degree),
-        },
-        Institution: {
-          rich_text: richText(application.institution),
-        },
-        Year: {
-          rich_text: richText(application.year),
-        },
-        Portfolio: {
-          rich_text: richText(application.portfolio),
-        },
-        Interests: {
-          rich_text: richText(joinList(application.interests)),
-        },
-        "Interests other": {
-          rich_text: richText(application.interestsOther),
-        },
-        "Why SDOT": {
-          rich_text: richText(application.why),
-        },
-        Analysis: {
-          rich_text: richText(application.analysis),
-        },
-        Tools: {
-          rich_text: richText(joinList(application.tools)),
-        },
-        "Tools other": {
-          rich_text: richText(application.toolsOther),
-        },
-        "Hours/week": {
-          rich_text: richText(application.hoursPerWeek),
-        },
-        "Start date": {
-          rich_text: richText(application.startDate),
-        },
-        "Video link": {
-          rich_text: richText(application.videoLink),
-        },
-        "Video note": {
-          rich_text: richText(application.videoNote),
-        },
-        Submitted: {
-          rich_text: richText(application.submittedAt),
-        },
-        "Review status": {
-          select: { name: "New" },
-        },
-      },
+      properties,
       markdown: buildPageMarkdown(application),
     }),
   });
